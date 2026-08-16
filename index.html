@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDX TV Kanal Listesi Düzenleyici & Sıralayıcı</title>
+  <meta name="description" content="Televizyon ve uydu alıcıları için SDX, XML, CSV kanal listesi görüntüleme ve yeniden sıralama aracı.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-logo">
+        <i class="fa-solid fa-tv"></i>
+      </div>
+      <div class="brand-text">
+        <h1>SDX TV Channel Editor</h1>
+        <p>Kanal Listesi Görüntüleme & Sıralama Aracı</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button id="btnUndo" class="btn btn-icon" title="Geri Al (Ctrl+Z)">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+      <button id="btnRedo" class="btn btn-icon" title="Yinele (Ctrl+Y)">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+      <button id="btnFixTVChars" class="btn" style="background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4); color:#34d399;" title="TV alıcılarının hata yapmaması için Türkçe karakterleri TV uyumlu karakterlere dönüştürür">
+        <i class="fa-solid fa-microchip"></i> TV Karakterlerini Düzelt
+      </button>
+      <button id="btnAddChannel" class="btn">
+        <i class="fa-solid fa-plus"></i> Kanal Ekle
+      </button>
+
+      <!-- Export Dropdown -->
+      <div style="position: relative;">
+        <button id="btnExportMenu" class="btn btn-primary" style="background:var(--secondary-gradient);">
+          <i class="fa-solid fa-download"></i> Kaydet / Dışa Aktar <i class="fa-solid fa-chevron-down" style="font-size:11px;"></i>
+        </button>
+        <div id="exportDropdown" style="display:none; position:absolute; right:0; top:48px; background:#182238; border:1px solid var(--border-color); border-radius:12px; width:260px; box-shadow:0 10px 30px rgba(0,0,0,0.5); z-index:200; overflow:hidden;">
+          <a href="#" id="exportSDX_SatcoTV" style="display:block; padding:12px 16px; color:#34d399; font-weight:bold; text-decoration:none; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-shield-check" style="margin-right:8px;"></i> .SDX (TV Garanti Uyumlu) ⭐</a>
+          <a href="#" id="exportSDX_Satco" style="display:block; padding:12px 16px; color:white; text-decoration:none; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-file-lines" style="color:#0ea5e9; margin-right:8px;"></i> .SDX (Ham Format)</a>
+          <a href="#" id="exportSDX_XML" style="display:block; padding:12px 16px; color:white; text-decoration:none; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-file-code" style="color:#6366f1; margin-right:8px;"></i> .SDX (XML Format)</a>
+          <a href="#" id="exportCSV" style="display:block; padding:12px 16px; color:white; text-decoration:none; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-file-excel" style="color:#10b981; margin-right:8px;"></i> .CSV (Excel Formatı)</a>
+          <a href="#" id="exportJSON" style="display:block; padding:12px 16px; color:white; text-decoration:none; font-size:13px;"><i class="fa-solid fa-file-json" style="color:#ec4899; margin-right:8px;"></i> .JSON Dosyası</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Drag & Drop Zone -->
+    <div class="dropzone-container" id="dropzone">
+      <input type="file" id="fileInput" accept=".sdx,.xml,.csv,.json,.txt">
+      <div class="dropzone-icon">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+      </div>
+      <div class="dropzone-title">.SDX veya .XML Dosyanızı Buraya Sürükleyin</div>
+      <div class="dropzone-desc">Televizyonunuzdan veya uydu alıcınızdan aldığınız kanal listesi dosyasını yükleyin (.sdx, .xml, .csv, .json)</div>
+      <div class="dropzone-actions">
+        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+          <i class="fa-solid fa-folder-open"></i> Dosya Seçin
+        </button>
+      </div>
+    </div>
+
+    <!-- Controls Card (Search & Category Filters) -->
+    <div class="controls-card">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" class="search-input" placeholder="Kanal adı, frekans veya numara ile ara...">
+      </div>
+
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">Hepsi</button>
+        <button class="filter-btn" data-filter="TV">TV</button>
+        <button class="filter-btn" data-filter="RADYO">Radyo</button>
+        <button class="filter-btn" data-filter="FAVORITE"><i class="fa-solid fa-star" style="color:#f59e0b;"></i> Favoriler</button>
+        <button class="filter-btn" data-filter="Ulusal">Ulusal</button>
+        <button class="filter-btn" data-filter="Haber">Haber</button>
+        <button class="filter-btn" data-filter="Spor">Spor</button>
+        <button class="filter-btn" data-filter="Çocuk">Çocuk</button>
+        <button class="filter-btn" data-filter="Müzik">Müzik</button>
+      </div>
+    </div>
+
+    <!-- Stats & General Actions -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div class="stats-bar">
+        <div class="stat-item">Toplam: <strong id="statTotal">0</strong></div>
+        <div class="stat-item">TV: <strong id="statTV">0</strong></div>
+        <div class="stat-item">Radyo: <strong id="statRadio">0</strong></div>
+        <div class="stat-item">Favori: <strong id="statFav">0</strong></div>
+        <div class="stat-item" style="color:#6366f1;">Seçili: <strong id="statSelected">0</strong></div>
+      </div>
+
+      <div class="nav-actions">
+        <button id="btnAutoRenumber" class="btn" title="Kanalları 1'den başlayarak yeniden numaralandırır">
+          <i class="fa-solid fa-arrow-down-1-9"></i> Numaralandır (1..N)
+        </button>
+        <button id="btnClearAll" class="btn btn-danger">
+          <i class="fa-solid fa-trash-can"></i> Tümünü Temizle
+        </button>
+      </div>
+    </div>
+
+    <!-- Floating Bulk Actions Toolbar -->
+    <div id="bulkToolbar" class="bulk-toolbar" style="display:none;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <i class="fa-solid fa-list-check" style="color:#6366f1; font-size:16px;"></i>
+        <span><strong id="bulkCount">0</strong> kanal seçildi</span>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <button id="btnBulkMoveTop" class="btn" title="Seçilen kanalları listenin en başına taşır">
+          <i class="fa-solid fa-angles-up"></i> En Başa Taşı
+        </button>
+        <button id="btnBulkMoveUp" class="btn" title="Seçilen kanalları 1 sıra yukarı taşır">
+          <i class="fa-solid fa-angle-up"></i> Yukarı
+        </button>
+        <button id="btnBulkMoveDown" class="btn" title="Seçilen kanalları 1 sıra aşağı taşır">
+          <i class="fa-solid fa-angle-down"></i> Aşağı
+        </button>
+        <button id="btnBulkMoveBottom" class="btn" title="Seçilen kanalları listenin en sonuna taşır">
+          <i class="fa-solid fa-angles-down"></i> En Sona Taşı
+        </button>
+
+        <div style="display:flex; align-items:center; gap:4px; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:8px; border:1px solid var(--border-color);">
+          <input type="number" id="moveTargetNum" style="width:60px; background:transparent; border:none; color:white; outline:none; text-align:center; font-weight:bold;" placeholder="No" min="1">
+          <button id="btnBulkMoveToPos" class="btn" style="padding:4px 8px; font-size:12px;">
+            Pozisyona Taşı
+          </button>
+        </div>
+
+        <button id="btnBulkFavorite" class="btn" title="Favorilere Ekle/Çıkar">
+          <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Favori
+        </button>
+        <button id="btnBulkDelete" class="btn btn-danger" title="Seçili kanalları siler">
+          <i class="fa-solid fa-trash-can"></i> Seçilenleri Sil
+        </button>
+        <button id="btnDeselectAll" class="btn" style="background:rgba(255,255,255,0.05);">
+          <i class="fa-solid fa-xmark"></i> Seçimi Kaldır
+        </button>
+      </div>
+    </div>
+
+    <!-- Channel Table -->
+    <div class="table-container">
+      <table class="channel-table">
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">
+              <input type="checkbox" id="selectAllCheckbox" style="cursor:pointer; accent-color:#6366f1; width:16px; height:16px;">
+            </th>
+            <th style="width: 40px;"></th>
+            <th style="width: 70px;">No</th>
+            <th>Kanal Adı</th>
+            <th>Tür</th>
+            <th>Kategori</th>
+            <th>Frekans</th>
+            <th>Polarizasyon</th>
+            <th>Sembol O.</th>
+            <th style="text-align: right; width: 140px;">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody id="channelTableBody">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Channel Edit Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Kanal Düzenle</h3>
+        <button class="action-icon-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="channelForm">
+        <input type="hidden" id="editChannelId">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="editNumber">Kanal Numarası</label>
+            <input type="number" id="editNumber" class="form-control" required min="1">
+          </div>
+          <div class="form-group">
+            <label for="editType">Tür</label>
+            <select id="editType" class="form-control">
+              <option value="TV">TV</option>
+              <option value="RADYO">RADYO</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="editName">Kanal Adı</label>
+            <input type="text" id="editName" class="form-control" required placeholder="TRT 1 HD">
+          </div>
+          <div class="form-group">
+            <label for="editCategory">Kategori</label>
+            <input type="text" id="editCategory" class="form-control" placeholder="Ulusal, Haber vb.">
+          </div>
+          <div class="form-group">
+            <label for="editFrequency">Frekans (MHz)</label>
+            <input type="number" id="editFrequency" class="form-control" placeholder="11054">
+          </div>
+          <div class="form-group">
+            <label for="editPolarization">Polarizasyon</label>
+            <select id="editPolarization" class="form-control">
+              <option value="H">Yatay (H)</option>
+              <option value="V">Dikey (V)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editSymbolRate">Sembol Oranı</label>
+            <input type="number" id="editSymbolRate" class="form-control" placeholder="30000">
+          </div>
+          <div class="form-group full-width">
+            <label for="editSatellite">Uydu Adı</label>
+            <input type="text" id="editSatellite" class="form-control" value="Turksat (42.0E)">
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+          <button type="button" class="btn" onclick="closeModal()">İptal</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
