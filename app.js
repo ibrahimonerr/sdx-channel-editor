@@ -22,7 +22,6 @@ const searchInput = document.getElementById('searchInput');
 const filterBtns = document.querySelectorAll('.filter-btn');
 
 const btnFixTVChars = document.getElementById('btnFixTVChars');
-const btnLoadPreset = document.getElementById('btnLoadPreset');
 const btnAddChannel = document.getElementById('btnAddChannel');
 const btnAutoRenumber = document.getElementById('btnAutoRenumber');
 const btnClearAll = document.getElementById('btnClearAll');
@@ -56,11 +55,11 @@ const statRadio = document.getElementById('statRadio');
 const statFav = document.getElementById('statFav');
 const statSelected = document.getElementById('statSelected');
 
-// Initialize App — Türksat Güncel Liste ile başlat
+// Initialize App — Türksat frekans listesi ile başla
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   loadChannels([...DEFAULT_PRESET_CHANNELS]);
-  showToast('Güncel Türksat (436 şifresiz kanal & popüler radyo) yüklendi.', 'success');
+  showToast('Türksat frekans listesindeki 437 şifresiz kanal yüklendi.', 'success');
 });
 
 function setupEventListeners() {
@@ -127,13 +126,6 @@ function setupEventListeners() {
 
 
   // Nav Actions
-  btnLoadPreset.addEventListener('click', () => {
-    pushHistory();
-    selectedIds.clear();
-    loadChannels([...DEFAULT_PRESET_CHANNELS]);
-    showToast('Güncel Türksat şifresiz kanal ve radyo listesi yüklendi.', 'success');
-  });
-
   btnAddChannel.addEventListener('click', () => {
     openModalForAdd();
   });
@@ -356,17 +348,6 @@ function handleFileUpload(file) {
 // State Operations
 function loadChannels(newList) {
   channels = newList;
-  selectedIds.clear();
-  searchQuery = '';
-  if (searchInput) searchInput.value = '';
-  activeFilter = 'all';
-  filterBtns.forEach(b => {
-    if (b.getAttribute('data-filter') === 'all') {
-      b.classList.add('active');
-    } else {
-      b.classList.remove('active');
-    }
-  });
   autoRenumberChannels();
   renderTable();
 }
