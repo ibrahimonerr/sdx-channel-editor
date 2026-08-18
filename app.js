@@ -22,6 +22,7 @@ const searchInput = document.getElementById('searchInput');
 const filterBtns = document.querySelectorAll('.filter-btn');
 
 const btnFixTVChars = document.getElementById('btnFixTVChars');
+const btnLoadPreset = document.getElementById('btnLoadPreset');
 const btnAddChannel = document.getElementById('btnAddChannel');
 const btnAutoRenumber = document.getElementById('btnAutoRenumber');
 const btnClearAll = document.getElementById('btnClearAll');
@@ -55,11 +56,11 @@ const statRadio = document.getElementById('statRadio');
 const statFav = document.getElementById('statFav');
 const statSelected = document.getElementById('statSelected');
 
-// Initialize App — Türksat frekans listesi ile başla
+// Initialize App — Türksat FTA kanal listesiyle başla
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   loadChannels([...DEFAULT_PRESET_CHANNELS]);
-  showToast('Türksat frekans listesindeki 437 şifresiz kanal yüklendi.', 'success');
+  showToast('Türksat şifresiz kanal listesi yüklendi. Kanallarınızı düzenleyebilirsiniz.', 'success');
 });
 
 function setupEventListeners() {
@@ -126,6 +127,16 @@ function setupEventListeners() {
 
 
   // Nav Actions
+  btnLoadPreset.addEventListener('click', () => {
+    if (channels.length > 0) {
+      if (!confirm('Mevcut liste silinecek ve Türksat şifresiz listesi yüklenecek. Devam edilsin mi?')) return;
+    }
+    pushHistory();
+    selectedIds.clear();
+    loadChannels([...DEFAULT_PRESET_CHANNELS]);
+    showToast('Türksat şifresiz kanal listesi yüklendi (409 kanal).', 'success');
+  });
+
   btnAddChannel.addEventListener('click', () => {
     openModalForAdd();
   });
