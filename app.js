@@ -356,6 +356,17 @@ function handleFileUpload(file) {
 // State Operations
 function loadChannels(newList) {
   channels = newList;
+  selectedIds.clear();
+  searchQuery = '';
+  if (searchInput) searchInput.value = '';
+  activeFilter = 'all';
+  filterBtns.forEach(b => {
+    if (b.getAttribute('data-filter') === 'all') {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
+    }
+  });
   autoRenumberChannels();
   renderTable();
 }
